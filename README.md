@@ -14,6 +14,8 @@ You will need to set the SPI variable `-spi-realm-restapi-extension-scim-organiz
 
 Configuration on organization level is done via the `ComponentModel` interface. This gives you a "free" GUI in the **User Federation** section of the Keycloak Admin UI. Pick the "Organization SCIM" provider. Note that you must manually enter the organization ID you wish to configure. 
 
+<img width="1226" height="732" alt="image" src="https://github.com/user-attachments/assets/c822acde-4ca0-43bd-9417-77127de9088a" />
+
 ------
 
 All documentation, source code and other files in this repository are Copyright 2026 Phase Two, Inc.
