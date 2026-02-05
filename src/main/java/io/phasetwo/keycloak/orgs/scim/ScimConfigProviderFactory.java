@@ -1,14 +1,18 @@
 package io.phasetwo.keycloak.orgs.scim;
 
 import com.google.auto.service.AutoService;
+import io.phasetwo.service.model.OrganizationModel;
+import io.phasetwo.service.model.OrganizationProvider;
 import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.component.ComponentValidationException;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.storage.UserStorageProviderFactory;
 
+@SuppressWarnings("rawtypes")
 @JBossLog
 @AutoService(UserStorageProviderFactory.class)
 public class ScimConfigProviderFactory implements UserStorageProviderFactory<ScimConfigProvider> {
@@ -36,24 +40,39 @@ public class ScimConfigProviderFactory implements UserStorageProviderFactory<Sci
   @Override
   public void validateConfiguration(
       KeycloakSession session, RealmModel realm, ComponentModel model) {
-    log.info("ScimConfigProviderFactory validateConfiguration");
-    log.infof("validationConfiguration id = %s", model.getId());
+    log.debug("ScimConfigProviderFactory validateConfiguration");
+
+    // set component ID = organizaiton ID
     ComponentScimConfig config = new ComponentScimConfig(model);
-    config.setId(config.getOrganizationId());
+    if (model.getId() == null) {
+      // check for another component with the same ID
+      ComponentModel otherModel =
+          session.getContext().getRealm().getComponent(config.getOrganizationId());
+      if (otherModel != null) {
+        throw new ComponentValidationException(
+            "Another SCIM provider already exists for organization ID: "
+                + config.getOrganizationId());
+      }
+      config.setId(config.getOrganizationId());
+    }
+
+    // organization must exist
+    OrganizationModel organization =
+        session.getProvider(OrganizationProvider.class).getOrganizationById(realm, config.getId());
+    if (organization == null) {
+      throw new ComponentValidationException(
+          "Organization ID not found: " + config.getOrganizationId());
+    }
   }
 
   @Override
   public void onCreate(KeycloakSession session, RealmModel realm, ComponentModel model) {
-    log.info("ScimConfigProviderFactory onCreate");
+    log.debug("ScimConfigProviderFactory onCreate");
   }
 
   @Override
   public void onUpdate(
       KeycloakSession session, RealmModel realm, ComponentModel oldModel, ComponentModel newModel) {
-    log.info("ScimConfigProviderFactory onUpdate");
-    ComponentScimConfig oldConfig = new ComponentScimConfig(newModel);
-    ComponentScimConfig newConfig = new ComponentScimConfig(newModel);
-
-    // realm.updateComponent(newModel);
+    log.debug("ScimConfigProviderFactory onUpdate");
   }
 }
