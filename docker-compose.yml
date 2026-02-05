@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/phasetwo/phasetwo-keycloak:26.1.4
+    entrypoint: ["/opt/keycloak/bin/kc.sh", "start-dev", "--spi-realm-restapi-extension-scim-organization-type=phasetwo"]
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    ports:
+      - 8080:8080
+    volumes:
+      - ./libs/keycloak-scim-server-1.4.1-SNAPSHOT.jar:/opt/keycloak/providers/keycloak-scim-server-1.4.1-SNAPSHOT.jar
+      - ./target/phasetwo-scim-orgs-0.1.jar:/opt/keycloak/providers/phasetwo-scim-orgs-0.1.jar
