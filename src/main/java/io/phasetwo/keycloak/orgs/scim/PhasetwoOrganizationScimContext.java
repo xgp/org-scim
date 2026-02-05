@@ -1,32 +1,32 @@
-package io.phasetwo.keycloak.scim.orgs;
+package io.phasetwo.keycloak.orgs.scim;
 
 import static fi.metatavu.keycloak.scim.server.users.UsersController.getEmailDomain;
 
-import fi.metatavu.keycloak.scim.server.ScimContext;
 import fi.metatavu.keycloak.scim.server.organization.*;
-import org.keycloak.models.FederatedIdentityModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
+import io.phasetwo.service.model.OrganizationModel;
+import io.phasetwo.service.resource.Converters;
 import java.net.URI;
-import java.util.Collections;
 import java.util.stream.Stream;
 import org.jboss.logging.Logger;
-import io.phasetwo.service.model.OrganizationModel;
-import io.phasetwo.service.model.OrganizationProvider;
-import io.phasetwo.service.resource.Converters;
+import org.keycloak.models.FederatedIdentityModel;
+import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
 
-/**
- * SCIM context for Phase Two organizations. https://github.com/p2-inc/keycloak-orgs
- */
+/** SCIM context for Phase Two organizations. https://github.com/p2-inc/keycloak-orgs */
 public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
 
   private static final Logger logger = Logger.getLogger(PhasetwoOrganizationScimContext.class);
-  
+
   protected final OrganizationModel organization;
 
-  public PhasetwoOrganizationScimContext(URI baseUri, KeycloakSession session, RealmModel realm, OrganizationScimConfig config, OrganizationModel organization) {
+  public PhasetwoOrganizationScimContext(
+      URI baseUri,
+      KeycloakSession session,
+      RealmModel realm,
+      OrganizationScimConfig config,
+      OrganizationModel organization) {
     super(baseUri, session, realm, organization.getId(), config);
     this.organization = organization;
   }
@@ -35,7 +35,7 @@ public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
   public Stream<UserModel> getMembersStream(Integer first, Integer max) {
     return organization.searchForMembersStream(null, null, null);
   }
-  
+
   @Override
   public UserModel findUser(String userId) {
     UserModel organizationUser = getSession().users().getUserById(getRealm(), userId);
@@ -43,7 +43,7 @@ public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
     if (!organization.hasMembership(organizationUser)) return null;
     return organizationUser;
   }
-  
+
   @Override
   public boolean addMember(UserModel user) {
     try {
@@ -53,7 +53,7 @@ public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
     }
     return true;
   }
-  
+
   @Override
   public boolean isMember(UserModel user) {
     return organization.hasMembership(user);
@@ -68,9 +68,10 @@ public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
     }
     return true;
   }
-  
+
   @Override
-  public boolean linkUserIdp(UserModel user, String scimUserEmail, String scimUserName, String scimExternalId) {
+  public boolean linkUserIdp(
+      UserModel user, String scimUserEmail, String scimUserName, String scimExternalId) {
     if (scimUserEmail == null) {
       logger.warn("User email is not set. Cannot link user to identity provider");
       return false;
@@ -89,29 +90,37 @@ public class PhasetwoOrganizationScimContext extends OrganizationScimContext {
 
     IdentityProviderModel identityProvider = null;
     if (organization.getDomains() != null && organization.getDomains().contains(emailDomain)) {
-      identityProvider = organization.getIdentityProvidersStream()
-                         .filter(identityProviderModel -> {
-                             return identityProviderModel.isEnabled();
-                           })
-                         .findFirst()
-                         .orElse(null);
+      identityProvider =
+          organization
+              .getIdentityProvidersStream()
+              .filter(
+                  identityProviderModel -> {
+                    return identityProviderModel.isEnabled();
+                  })
+              .findFirst()
+              .orElse(null);
     }
 
     if (identityProvider == null) {
-      logger.warn("No identity provider found for email domain: " + emailDomain + ". Cannot link user to identity provider");
+      logger.warn(
+          "No identity provider found for email domain: "
+              + emailDomain
+              + ". Cannot link user to identity provider");
       return false;
     }
 
-    if (getSession().users().getFederatedIdentity(getRealm(), user, identityProvider.getAlias()) == null) {
+    if (getSession().users().getFederatedIdentity(getRealm(), user, identityProvider.getAlias())
+        == null) {
       logger.info("Linking user to identity provider: " + identityProvider.getAlias());
-      FederatedIdentityModel identityModel = new FederatedIdentityModel(identityProvider.getAlias(), scimExternalId, scimUserName);
+      FederatedIdentityModel identityModel =
+          new FederatedIdentityModel(identityProvider.getAlias(), scimExternalId, scimUserName);
       getSession().users().addFederatedIdentity(getRealm(), user, identityModel);
       return true;
     }
 
     return false;
   }
-  
+
   @Override
   public Object toRepresentation() {
     return Converters.convertOrganizationModelToOrganization(organization);

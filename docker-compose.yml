@@ -11,4 +11,4 @@ services:
       - 8080:8080
     volumes:
       - ./libs/keycloak-scim-server-1.4.1-SNAPSHOT.jar:/opt/keycloak/providers/keycloak-scim-server-1.4.1-SNAPSHOT.jar
-      - ./target/phasetwo-scim-orgs-0.1.jar:/opt/keycloak/providers/phasetwo-scim-orgs-0.1.jar
+      - ./target/phasetwo-org-scim-0.1.jar:/opt/keycloak/providers/phasetwo-org-scim-0.1.jar
