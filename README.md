@@ -8,12 +8,12 @@ A organization SCIM provider implementation that uses this [Keycloak SCIM 2.0 Ex
 
 In order to use it, you need to get the jar from that project (or our copy in the `libs/` dir, as they do not publish to Maven Central), and the jar that is built by `mvn package` in this project. Both will go in your Keycloak `providers/` dir.
 
-You will need to set the SPI variable `--spi-realm-restapi-extension--scim--organization-type=phasetwo` in order to load this implementation rather than they Keycloak native orgs default.
+You will need to set the SPI variable `-spi-realm-restapi-extension-scim-organization-type=phasetwo` in order to load this implementation rather than they Keycloak native orgs default.
 
 ## Conf
 
-Configuration on organization level is done by defining organization attributes in the Keycloak server. See the documentation here on how to set the attributes: https://github.com/Metatavu/keycloak-scim-server/?tab=readme-ov-file#configuration-on-organization-level
+Configuration on organization level is done via the `ComponentModel` interface. This gives you a "free" GUI in the **User Federation** section of the Keycloak Admin UI. Pick the "Organization SCIM" provider. Note that you must manually enter the organization ID you wish to configure. 
 
------
+------
 
 All documentation, source code and other files in this repository are Copyright 2026 Phase Two, Inc.
